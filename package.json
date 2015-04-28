@@ -9,6 +9,9 @@
     "url": "https://github.com/fieldpapers/fp-tiler.git"
   },
   "license": "ISC",
+  "engines": {
+    "node": "~0.10.38"
+  },
   "dependencies": {
     "express": "^4.12.3",
     "lru-cache": "^2.6.2",
