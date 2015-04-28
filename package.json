@@ -1,0 +1,19 @@
+{
+  "name": "fp-tiler",
+  "version": "0.0.0",
+  "description": "A tile server for Field Papers",
+  "bin": "server.js",
+  "author": "Seth Fitzsimmons <seth@mojodna.net>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fieldpapers/fp-tiler.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.12.3",
+    "lru-cache": "^2.6.2",
+    "tessera": "^0.5.1",
+    "tilelive": "^5.7.0",
+    "tilelive-cache": "^0.4.4"
+  }
+}
