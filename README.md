@@ -10,7 +10,7 @@ API_BASE_URL=http://next.fieldpapers.org/ npm start
 
 ## Installation
 
-This is a typical NPM-managed install, except that
+This is a typical npm-managed install, except that
 [node-gdal](https://github.com/naturalatlas/node-gdal) must be built from
 source in order to support FP's old JPEG-compressed snapshots.
 
