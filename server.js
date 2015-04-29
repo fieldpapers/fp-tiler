@@ -5,9 +5,11 @@ var path = require("path"),
     util = require("util");
 
 var express = require("express"),
-    LRU = require("lru-cache"),
+    lru = require("lru-cache"),
     tessera = require("tessera"),
-    tilelive = require("tilelive-cache")(require("tilelive"));
+    tilelive = require("tilelive-cache")(require("tilelive"), {
+      sources: 100
+    });
 
 // TODO use tilelive-modules (see mojodna/tilelive-modules#2)
 require("tilelive-mapnik").registerProtocols(tilelive);
@@ -15,7 +17,7 @@ require("tilelive-raster")(tilelive);
 require("tilelive-fieldpapers")(tilelive);
 
 var API_BASE_URL = process.env.API_BASE_URL || "http://fieldpapers.org/",
-    CACHE = LRU(2),
+    CACHE = lru(500),
     SUPPORT = express();
 
 SUPPORT.use(express.static(path.join(__dirname, "node_modules", "tessera", "public")));
