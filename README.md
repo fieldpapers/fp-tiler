@@ -29,3 +29,11 @@ To build a Docker image:
 ```bash
 docker built -t fieldpapers/tiler --rm .
 ```
+
+### On Heroku
+
+Before pushing, you'll need to tell `npm` to install `gdal` from source:
+
+```bash
+heroku config:set npm_config_build_from_source=gdal
+```
