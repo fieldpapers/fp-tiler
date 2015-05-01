@@ -4,8 +4,11 @@
 var path = require("path"),
     util = require("util");
 
-var express = require("express"),
+var cors = require("cors"),
+    express = require("express"),
     lru = require("lru-cache"),
+    morgan = require("morgan"),
+    responseTime = require("response-time"),
     tessera = require("tessera"),
     tilelive = require("tilelive-cache")(require("tilelive"), {
       sources: 100
@@ -23,7 +26,14 @@ var API_BASE_URL = process.env.API_BASE_URL || "http://fieldpapers.org/",
 SUPPORT.use(express.static(path.join(__dirname, "node_modules", "tessera", "public")));
 SUPPORT.use(express.static(path.join(__dirname, "node_modules", "tessera", "bower_components")));
 
-var app = express();
+var app = express().disable("x-powered-by");
+
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
+}
+
+app.use(responseTime());
+app.use(cors());
 
 if (process.env.SENTRY_DSN) {
   var raven = require("raven");
