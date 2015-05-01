@@ -25,6 +25,19 @@ SUPPORT.use(express.static(path.join(__dirname, "node_modules", "tessera", "bowe
 
 var app = express();
 
+if (process.env.SENTRY_DSN) {
+  var raven = require("raven");
+
+  raven.patchGlobal(function(logged, err) {
+    console.log("Uncaught error. Reporting to Sentry and exiting.");
+    console.error(err.stack);
+
+    process.exit(1);
+  });
+
+  app.use(raven.middleware.express());
+}
+
 app.use("/:type(snapshots|atlases)/:slug", function(req, res, next) {
   var key = [req.params.type, req.params.slug].join("-"),
       route;
