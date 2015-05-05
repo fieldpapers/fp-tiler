@@ -16,24 +16,14 @@ docker run --rm -p 8080:8080 -e API_BASE_URL=http://next.fieldpapers.org/ fieldp
 
 ## Installation
 
-This is a typical npm-managed install, except that
-[node-gdal](https://github.com/naturalatlas/node-gdal) must be built from
-source in order to support FP's old JPEG-compressed snapshots.
+This is a typical npm-managed install:
 
 ```bash
-npm install --build-from-source=gdal
+npm install
 ```
 
 To build a Docker image:
 
 ```bash
 docker built -t fieldpapers/tiler --rm .
-```
-
-### On Heroku
-
-Before pushing, you'll need to tell `npm` to install `gdal` from source:
-
-```bash
-heroku config:set npm_config_build_from_source=gdal
 ```

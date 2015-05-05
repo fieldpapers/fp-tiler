@@ -23,7 +23,7 @@
     "tilelive-cache": "^0.4.4",
     "tilelive-fieldpapers": "^0.1.0",
     "tilelive-mapnik": "^0.6.16",
-    "tilelive-raster": "^0.1.2"
+    "tilelive-raster": "^0.2.0"
   },
   "optionalDependencies": {
     "raven": "^0.7.3"
