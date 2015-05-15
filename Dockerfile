@@ -10,7 +10,7 @@ WORKDIR /app
 ADD package.json /app/
 
 RUN \
-  npm install --build-from-source=gdal
+  npm install
 
 ADD . /app/
 
