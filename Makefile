@@ -1,3 +1,4 @@
+NAME = fieldpapers/tiler
 VERSION ?= latest
 
 default:
@@ -5,10 +6,10 @@ default:
 	  -p 8080:8080 \
 	  -v $$(pwd):/app \
 	  --env-file .env \
-	  fieldpapers/tiler:$(VERSION)
+	  $(NAME):$(VERSION)
 
 image:
-	docker build -t fieldpapers/tiler:$(VERSION) .
+	docker build --rm -t $(NAME):$(VERSION) .
 
 publish-image:
-	docker push fieldpapers/tiler:$(VERSION)
+	docker push $(NAME):$(VERSION)
