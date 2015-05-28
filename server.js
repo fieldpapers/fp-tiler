@@ -26,6 +26,7 @@ var API_BASE_URL = process.env.API_BASE_URL || "http://fieldpapers.org/",
     CACHE = lru(500),
     SUPPORT = express();
 
+// TODO export these from tessera
 SUPPORT.use(express.static(path.join(__dirname, "node_modules", "tessera", "public")));
 SUPPORT.use(express.static(path.join(__dirname, "node_modules", "tessera", "bower_components")));
 
