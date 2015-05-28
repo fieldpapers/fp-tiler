@@ -14,7 +14,7 @@ var cors = require("cors"),
     responseTime = require("response-time"),
     tessera = require("tessera"),
     tilelive = require("tilelive-cache")(require("tilelive"), {
-      sources: 100
+      sources: 75
     });
 
 // TODO use tilelive-modules (see mojodna/tilelive-modules#2)
