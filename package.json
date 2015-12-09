@@ -16,7 +16,7 @@
     "cors": "^2.6.0",
     "express": "^4.12.3",
     "lru-cache": "^2.6.2",
-    "mapnik": "~3.2.0",
+    "mapnik": "~3.4.11",
     "morgan": "^1.5.2",
     "response-time": "^2.3.0",
     "tessera": "^0.5.1",
