@@ -19,14 +19,15 @@
     "mapnik": "~3.4.11",
     "morgan": "^1.5.2",
     "response-time": "^2.3.0",
-    "tessera": "^0.5.1",
+    "tessera": "^0.6.0",
     "tilelive": "^5.7.0",
-    "tilelive-cache": "^0.4.4",
+    "tilelive-cache": "^0.5.1",
     "tilelive-fieldpapers": "^0.1.0",
     "tilelive-mapnik": "^0.6.16",
+    "tilelive-modules": "^0.2.0",
     "tilelive-raster": "^0.2.2"
   },
   "optionalDependencies": {
-    "raven": "^0.7.3"
+    "raven": "^0.9.0"
   }
 }
