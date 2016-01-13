@@ -68,6 +68,10 @@ app.use("/:type(snapshots|atlases)/:slug", function(req, res, next) {
 
 app.use("/[^\/]+/", SUPPORT);
 
-app.listen(process.env.PORT || 8080, function() {
+var server = express();
+
+server.use(process.env.PATH_PREFIX || "", app);
+
+server.listen(process.env.PORT || 8080, function() {
   console.log("Listening at http://%s:%d/", this.address().address, this.address().port);
 });

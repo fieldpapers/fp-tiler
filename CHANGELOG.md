@@ -5,6 +5,7 @@
 * Add core server functionality (CORS, logging, Sentry, response timing, ...)
 * Update `tilelive-raster` to pick up `tilelive-error` and `node-gdal` w/ JPEG
   and DEFLATE support
+* Support path prefixing via `PATH_PREFIX`
 
 ## v0.1.0 - 5/1/15
 
