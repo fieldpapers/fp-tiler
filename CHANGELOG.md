@@ -1,6 +1,6 @@
 # Changes
 
-## v0.2.0
+## v0.2.0 - 4/22/16
 
 * Add core server functionality (CORS, logging, Sentry, response timing, ...)
 * Update `tilelive-raster` to pick up `tilelive-error` and `node-gdal` w/ JPEG
