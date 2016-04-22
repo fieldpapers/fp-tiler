@@ -1,6 +1,6 @@
 {
   "name": "fp-tiler",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A tile server for Field Papers",
   "bin": "server.js",
   "author": "Seth Fitzsimmons <seth@mojodna.net>",
