@@ -9,25 +9,22 @@
     "url": "https://github.com/fieldpapers/fp-tiler.git"
   },
   "license": "ISC",
-  "engines": {
-    "node": "~0.10.38"
-  },
   "dependencies": {
     "cors": "^2.6.0",
     "express": "^4.12.3",
-    "lru-cache": "^2.6.2",
-    "mapnik": "~3.5.14",
+    "lru-cache": "^4.1.1",
+    "mapnik": "^3.6.1",
     "morgan": "^1.5.2",
     "response-time": "^2.3.0",
-    "tessera": "^0.6.0",
-    "tilelive": "^5.7.0",
-    "tilelive-cache": "^0.5.1",
+    "tessera": "^0.11.0",
+    "@mapbox/tilelive": "^5.7.0",
+    "tilelive-cache": "^0.7.1",
     "tilelive-fieldpapers": "^0.1.0",
-    "tilelive-mapnik": "^0.6.16",
-    "tilelive-modules": "^0.2.0",
-    "tilelive-raster": "^0.3.0"
+    "@mapbox/tilelive-mapnik": "^0.7.0",
+    "tilelive-modules": "^0.3.3",
+    "tilelive-raster": "^0.4.0"
   },
   "optionalDependencies": {
-    "raven": "^0.9.0"
+    "raven": "^2.0.2"
   }
 }

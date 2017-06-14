@@ -1,5 +1,9 @@
 # Changes
 
+## v0.3.0
+
+* Update dependencies
+
 ## v0.2.0 - 4/22/16
 
 * Add core server functionality (CORS, logging, Sentry, response timing, ...)
