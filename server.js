@@ -13,7 +13,7 @@ var cors = require("cors"),
     morgan = require("morgan"),
     responseTime = require("response-time"),
     tessera = require("tessera"),
-    tilelive = require("tilelive-cache")(require("tilelive"), {
+    tilelive = require("tilelive-cache")(require("@mapbox/tilelive"), {
       sources: 75
     });
 
