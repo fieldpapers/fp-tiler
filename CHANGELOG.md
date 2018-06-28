@@ -3,6 +3,7 @@
 ## v0.3.0
 
 * Update dependencies
+* Update dependencies to sync mapnik versions
 
 ## v0.2.0 - 4/22/16
 

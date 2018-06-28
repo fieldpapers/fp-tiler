@@ -16,13 +16,13 @@
     "mapnik": "^3.6.1",
     "morgan": "^1.5.2",
     "response-time": "^2.3.0",
-    "tessera": "^0.11.0",
+    "tessera": "^0.13.0",
     "@mapbox/tilelive": "^5.7.0",
     "tilelive-cache": "^0.7.1",
     "tilelive-fieldpapers": "^0.1.0",
-    "@mapbox/tilelive-mapnik": "^0.7.0",
-    "tilelive-modules": "^0.3.3",
-    "tilelive-raster": "^0.4.0"
+    "@mapbox/tilelive-mapnik": "^1.0.0",
+    "tilelive-modules": "^0.4.0",
+    "tilelive-raster": "^0.5.0"
   },
   "optionalDependencies": {
     "raven": "^2.0.2"
