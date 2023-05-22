@@ -1,4 +1,4 @@
-FROM node:0.10
+FROM node:20.2
 
 RUN \
   useradd -d /app -m fieldpapers
