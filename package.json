@@ -16,7 +16,7 @@
     "mapnik": "3.7.2",
     "morgan": "1.5.2",
     "response-time": "2.3.0",
-    "tessera": "0.14.1",
+    "tessera": "0.15.5",
     "@mapbox/tilelive": "5.12.3",
     "tilelive-cache": "0.7.1",
     "tilelive-fieldpapers": "0.1.2",
