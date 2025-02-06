@@ -17,7 +17,9 @@ var cors = require("cors"),
       sources: 75
     });
 
-require("tilelive-modules/loader")(tilelive);
+require('@mapbox/tilelive-mapnik').registerProtocols(tilelive);
+require('tilelive-raster')(tilelive);
+require('tilelive-fieldpapers')(tilelive);
 
 var API_BASE_URL = process.env.API_BASE_URL || "http://fieldpapers.org/",
     CACHE = lru(500),

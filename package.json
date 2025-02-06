@@ -10,24 +10,24 @@
   },
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.6.0",
-    "express": "^4.12.3",
-    "lru-cache": "^4.1.1",
-    "mapnik": "^3.6.1",
-    "morgan": "^1.5.2",
-    "response-time": "^2.3.0",
-    "tessera": "^0.14.1",
-    "@mapbox/tilelive": "^5.7.0",
-    "tilelive-cache": "^0.7.1",
-    "tilelive-fieldpapers": "^0.1.0",
-    "@mapbox/tilelive-mapnik": "^1.0.0",
-    "tilelive-modules": "^0.4.0",
-    "tilelive-raster": "^0.5.0"
+    "cors": "2.6.0",
+    "express": "4.12.3",
+    "lru-cache": "4.1.1",
+    "mapnik": "3.7.2",
+    "morgan": "1.5.2",
+    "response-time": "2.3.0",
+    "tessera": "0.14.1",
+    "@mapbox/tilelive": "5.12.3",
+    "tilelive-cache": "0.7.1",
+    "tilelive-fieldpapers": "0.1.2",
+    "@mapbox/tilelive-mapnik": "1.0.0",
+    "tilelive-raster": "0.5.0",
+    "tough-cookie": "2.5.0"
   },
   "optionalDependencies": {
-    "raven": "^2.0.2"
+    "raven": "2.0.2"
   },
   "engines": {
-    "node": "4.8.4"
+    "node": "6.17.1"
   }
 }
