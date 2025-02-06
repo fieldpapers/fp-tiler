@@ -24,9 +24,6 @@
     "tilelive-raster": "0.5.0",
     "tough-cookie": "2.5.0"
   },
-  "optionalDependencies": {
-    "raven": "2.0.2"
-  },
   "engines": {
     "node": "8.17.0"
   }

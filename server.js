@@ -37,7 +37,7 @@ if (process.env.NODE_ENV !== "production") {
 
 app.use(responseTime());
 app.use(cors());
-
+/*
 if (process.env.SENTRY_DSN) {
   var raven = require("raven");
 
@@ -50,6 +50,7 @@ if (process.env.SENTRY_DSN) {
 
   app.use(raven.middleware.express());
 }
+*/
 
 app.use("/:type(snapshots|atlases)/:slug", function(req, res, next) {
   var key = [req.params.type, req.params.slug].join("-"),
