@@ -10,7 +10,7 @@
   },
   "license": "ISC",
   "dependencies": {
-    "cors": "2.6.0",
+    "cors": "2.8.5",
     "express": "4.12.3",
     "lru-cache": "4.1.1",
     "mapnik": "3.7.2",
