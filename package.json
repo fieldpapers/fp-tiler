@@ -14,7 +14,7 @@
     "express": "4.12.3",
     "lru-cache": "4.1.1",
     "mapnik": "3.7.2",
-    "morgan": "1.5.2",
+    "morgan": "1.10.0",
     "response-time": "2.3.0",
     "tessera": "0.14.1",
     "@mapbox/tilelive": "5.12.3",
