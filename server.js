@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import express from 'express';
+import cors from 'cors';
 import sharp from 'sharp';
 import proj4 from 'proj4';
 import createTile from "geotiff-tile";
@@ -16,6 +17,9 @@ const geotiffCache = new LRUCache({
 });
 const inflightPromises = {};
 const app = express();
+app.use(cors({
+  origin: true
+}));
 
 const minZoom = 0;
 const maxZoom = 24;
