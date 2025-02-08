@@ -26,7 +26,7 @@ const maxZoom = 24;
 
 const port = process.env.PORT || 8080;
 const siteUrl = process.env.SITE_URL || `http://localhost:${port}`;
-const snapshotGeotiffUrlTemplate = process.env.GEOTIFFS_ENDPOINT || `https://s3.amazonaws.com/files.fieldpapers.org/snapshots/$1/field-paper-$1.tiff`;
+const apiBaseUrl = process.env.API_BASE_URL || "https://fieldpapers.org";
 
 const viewerHtml = readFileSync(`${__dirname}/snapshot-viewer.html`).toString();
 
@@ -36,8 +36,9 @@ async function getSnapshotGeotiff(id) {
   } else if (inflightPromises[id]) {
     return inflightPromises[id];
   } else {
-    const url = snapshotGeotiffUrlTemplate.replaceAll('$1', id);
-    const promise = fetch(url)
+    const promise = fetch(`${apiBaseUrl}/snapshots/${id}.json`)
+      .then(res => res.json())
+      .then(json => fetch(json.geotiff.url))
       .then(res => res.arrayBuffer())
       // Don't use the `fromUrl` constructor because we want to
       // download the data once, cache it, and access it quickly
