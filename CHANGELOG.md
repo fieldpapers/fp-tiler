@@ -1,5 +1,11 @@
 # Changes
 
+## v1.0.0 - 2/7/25
+
+* Upgrade to support Node 22
+* Drop or replace outdated dependencies
+* Replace snapshot previewer with MapLibre-based page
+
 ## v0.3.0
 
 * Update dependencies
