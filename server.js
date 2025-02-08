@@ -72,11 +72,11 @@ async function getSnapshotTileJson(id) {
   return getSnapshotBounds(id)
     .then(wgsBounds => {
       const smallestTileZoom = bboxToTile(wgsBounds)[2];
-      const center = [(wgsBounds[2] + wgsBounds[0]) / 2, (wgsBounds[3] + wgsBounds[1]) / 2, Math.min(smallestTileZoom + 6, maxZoom)];
+      const center = [(wgsBounds[2] + wgsBounds[0]) / 2, (wgsBounds[3] + wgsBounds[1]) / 2, Math.min(smallestTileZoom + 4, maxZoom)];
 
       return {
         name: `fp-snapshot-${id}`,
-        minzoom: Math.min(smallestTileZoom + 3, maxZoom),
+        minzoom: Math.min(smallestTileZoom + 2, maxZoom),
         maxzoom: Math.min(smallestTileZoom + 9, maxZoom),
         bounds: wgsBounds,
         center: center,
