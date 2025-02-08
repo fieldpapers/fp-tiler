@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const geotiffCache = new LRUCache({
-  max: 100 // most geotiffs to cache in memory at once
+  max: 10 // most geotiffs to cache in memory at once
 });
 const inflightPromises = {};
 const app = express();
