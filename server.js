@@ -112,7 +112,7 @@ async function generateTileForSnapshot(id, z, x, y, tileSize) {
         geotiff_srs: 3857,
         tile_srs: 3857,
         use_overview: false,
-        // need to specify Int16Array so result we can assign a negative "tile_no_data" value
+        // need to specify Int16Array so we can assign a negative "tile_no_data" value
         tile_array_types: ["Array", "Int16Array"],
         tile_no_data: -1,
       });
