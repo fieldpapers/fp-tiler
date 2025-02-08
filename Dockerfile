@@ -1,4 +1,4 @@
-FROM node:0.10
+FROM node:22
 
 RUN \
   useradd -d /app -m fieldpapers
@@ -7,12 +7,10 @@ USER fieldpapers
 ENV HOME /app
 WORKDIR /app
 
-ADD package.json /app/
+ADD . /app/
 
 RUN \
   npm install
-
-ADD . /app/
 
 VOLUME ["/app"]
 EXPOSE 8080
