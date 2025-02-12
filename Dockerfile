@@ -1,16 +1,13 @@
 FROM node:22
 
-RUN useradd -ms /bin/bash fieldpapers
-RUN mkdir -p /home/fieldpapers/app && chown -R fieldpapers:fieldpapers /home/fieldpapers/app
+USER node
 
-USER fieldpapers
-
-WORKDIR /home/fieldpapers/app
-ADD . /home/fieldpapers/app/
+WORKDIR /app
+ADD . /app/
 
 RUN npm install
 
-VOLUME ["/home/fieldpapers/app"]
+VOLUME ["/app"]
 EXPOSE 8080
 
 CMD npm start
