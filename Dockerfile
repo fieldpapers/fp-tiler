@@ -1,9 +1,10 @@
 FROM node:22
 
-USER node
-
 WORKDIR /app
 ADD . /app/
+RUN chown -R node:node /app
+
+USER node
 
 RUN npm install
 
