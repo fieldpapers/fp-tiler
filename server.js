@@ -182,6 +182,11 @@ app.get('/snapshots/:snapshotId/', (req, res, next) => {
     .catch(next)
 });
 
+app.get('/toner.json', (req, res, next) => {
+  res.set('Content-Type', 'application/json');
+  res.sendFile(`${__dirname}/toner.json`);
+});
+
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);
 });

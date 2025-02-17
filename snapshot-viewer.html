@@ -13,26 +13,23 @@
       window.addEventListener('load', function() {
         var map = new maplibregl.Map({
           container: 'map', // container id
-          style: {
-            "version": 8,
-            "sources": {
-              "snapshot": {
-                "type": "raster",
-                "url": window.location.origin + "/snapshots/{{SNAPSHOT}}/index.json"
-              }
-            },
-            "layers": [
-              {
-                "id": "snapshot",
-                "source": "snapshot",
-                "type": "raster"
-              }
-            ]
-          },
+          style: window.location.origin + "/toner.json",
           center: [0, 0],
           zoom: 1,
           hash: true
         });
+        map.on('load', function() {
+          map.addSource("snapshot", {
+            "type": "raster",
+            "url": window.location.origin + "/snapshots/{{SNAPSHOT}}/index.json"
+          });
+          map.addLayer({
+            "id": "snapshot",
+            "source": "snapshot",
+            "type": "raster"
+          });
+        });
+       
         // Add zoom and rotation controls to the map.
         map.addControl(new maplibregl.NavigationControl({
             visualizePitch: true,
