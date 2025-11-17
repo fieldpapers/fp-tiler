@@ -9,6 +9,7 @@ import { bboxToTile, tileToBBOX } from '@mapbox/tilebelt';
 import { LRUCache } from 'lru-cache'
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { performance } from 'perf_hooks';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -20,6 +21,16 @@ const app = express();
 app.use(cors({
   origin: true
 }));
+
+// log all requests and their response codes and timings
+app.use((req, res, next) => {
+  const start = performance.now();
+  res.on('finish', () => {
+    const duration = (performance.now() - start).toFixed(2);
+    console.log(`${res.statusCode} ${req.method} ${req.url} ${duration}ms`);
+  });
+  next();
+});
 
 const minZoom = 0;
 const maxZoom = 24;
@@ -185,6 +196,20 @@ app.get('/snapshots/:snapshotId/', (req, res, next) => {
 app.get('/toner.json', (req, res, next) => {
   res.set('Content-Type', 'application/json');
   res.sendFile(`${__dirname}/toner.json`);
+});
+
+// catch and log errors, and send them back to the client
+app.use((err, req, res, next) => {
+  console.error(`ERROR: ${req.method} ${req.url}`);
+  console.error(err.stack || err);
+
+  res.status(err.status || 500);
+  res.json({
+    error: {
+      message: err.message || 'Internal server error',
+      status: err.status || 500
+    }
+  });
 });
 
 app.listen(port, function() {
