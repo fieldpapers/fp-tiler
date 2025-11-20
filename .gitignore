@@ -1,2 +1,4 @@
 .env
 .envrc
+dist/
+node_modules/

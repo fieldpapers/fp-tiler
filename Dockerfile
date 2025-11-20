@@ -1,14 +1,23 @@
-FROM node:22
+FROM public.ecr.aws/lambda/nodejs:22 AS builder
 
-WORKDIR /app
-ADD . /app/
-RUN chown -R node:node /app
+WORKDIR /var/task
 
-USER node
+COPY package*.json ./
+RUN npm ci
 
-RUN npm install
+COPY tsconfig.json ./
+COPY src ./src
+RUN npx tsc
 
-VOLUME ["/app"]
-EXPOSE 8080
+FROM public.ecr.aws/lambda/nodejs:22
 
-CMD npm start
+WORKDIR /var/task
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder /var/task/dist/ ./
+
+ENV NODE_ENV=production
+
+CMD ["index.handler"]

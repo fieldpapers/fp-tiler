@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.0 - 2025-11-19
+
+* Rewrite the application as an AWS Lambda microservice. This avoids excessive
+  S3 egress costs. We're deploying it behind CloudFront so it's also much
+  faster now for repeat tile requests.
+
 ## v1.0.0 - 2025-02-07
 
 * Upgrade to support Node 22

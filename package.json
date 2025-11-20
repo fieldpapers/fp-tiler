@@ -1,6 +1,6 @@
 {
   "name": "fp-tiler",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "description": "A tile server for Field Papers",
   "repository": {
@@ -8,20 +8,25 @@
     "url": "https://github.com/fieldpapers/fp-tiler.git"
   },
   "scripts": {
-    "start": "node server.js"
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.933.0",
     "@mapbox/tilebelt": "^2.0.2",
-    "cors": "^2.8.5",
-    "express": "^4.21.2",
     "geotiff": "2.1.3",
     "geotiff-tile": "0.21.0",
+    "hono": "^4.10.6",
     "lru-cache": "^11.0.2",
     "proj4": "^2.15.0",
     "sharp": "^0.33.5"
   },
   "engines": {
-    "node": "22.13.1"
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.1",
+    "typescript": "^5.9.3"
   }
 }
