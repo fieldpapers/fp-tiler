@@ -7,7 +7,7 @@ RUN npm ci
 
 COPY tsconfig.json ./
 COPY src ./src
-RUN npx tsc
+RUN npm run build
 
 FROM public.ecr.aws/lambda/nodejs:22
 

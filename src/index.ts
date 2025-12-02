@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, Context } from 'hono';
 import { handle } from 'hono/aws-lambda';
 import sharp from 'sharp';
 import proj4 from 'proj4';
@@ -190,7 +190,7 @@ app.get('/snapshots/:snapshotId/index.json', async (c) => {
   }
 });
 
-async function handleTileRequest(c: any, tileSize: number) {
+app.get('/snapshots/:snapshotId/:z/:x/:filename', async (c) => {
   try {
     const snapshotId = c.req.param('snapshotId');
     const z = parseInt(c.req.param('z'), 10);
@@ -202,12 +202,12 @@ async function handleTileRequest(c: any, tileSize: number) {
       throw new Error('Invalid tile coordinates');
     }
 
-    const data = await generateTileForSnapshot(snapshotId, z, x, y, tileSize);
-    return new Response(data, {
-      headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=31536000, immutable'
-      }
+    const tileSizeForRequest = filename.endsWith('@2x.png') ? 512 : 256;
+    const data = await generateTileForSnapshot(snapshotId, z, x, y, tileSizeForRequest);
+
+    return c.body(data as Uint8Array<ArrayBuffer>, 200, {
+      'Content-Type': 'image/png',
+      'Cache-Control': 'public, max-age=31536000, immutable'
     });
   } catch (err) {
     console.error('Error generating tile:', err);
@@ -221,12 +221,6 @@ async function handleTileRequest(c: any, tileSize: number) {
       500
     );
   }
-}
-
-app.get('/snapshots/:snapshotId/:z/:x/:filename', async (c) => {
-  const filename = c.req.param('filename');
-  const tileSize = filename.endsWith('@2x.png') ? 512 : 256;
-  return handleTileRequest(c, tileSize);
 });
 
 export const handler = handle(app);
