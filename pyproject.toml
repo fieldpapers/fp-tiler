@@ -27,4 +27,4 @@ filterwarnings = ["ignore::DeprecationWarning:mangum"]
 module-name = "fptiler"
 
 [tool.uv]
-exclude-newer = "7 days"
+exclude-newer = "3 days"
