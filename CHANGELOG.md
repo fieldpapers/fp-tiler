@@ -1,5 +1,16 @@
 # Changelog
 
+## v3.0.0 - 2026-10-27
+
+* Rewrite in Python using rio-tiler (the same engine used in TiTiler). GeoTIFFs
+  are now read with HTTP range requests instead of being downloaded in full, and
+  overviews are used when present (Cloud Optimized GeoTIFFs).
+* Fix speckles in snapshot tiles where a pixel had the nodata value (153) in
+  some but not all bands.
+* Tiles are now resampled bilinearly instead of using nearest neighbor.
+* TileJSON zoom ranges are now based on the snapshot's native resolution.
+* Return 404 for unknown snapshots and bad tile coordinates instead of 500.
+
 ## v2.0.0 - 2025-11-19
 
 * Rewrite the application as an AWS Lambda microservice. This avoids excessive

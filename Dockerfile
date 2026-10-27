@@ -1,23 +1,16 @@
-FROM public.ecr.aws/lambda/nodejs:22 AS builder
+FROM public.ecr.aws/lambda/python:3.13
 
-WORKDIR /var/task
+# The rasterio wheel expects these from the system.
+RUN dnf install -y expat libstdc++ && dnf clean all
 
-COPY package*.json ./
-RUN npm ci
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-COPY tsconfig.json ./
-COPY src ./src
-RUN npm run build
+WORKDIR ${LAMBDA_TASK_ROOT}
 
-FROM public.ecr.aws/lambda/nodejs:22
+COPY pyproject.toml uv.lock ./
+RUN uv export --frozen --no-dev --no-emit-project -o requirements.txt \
+  && uv pip install --no-cache --target . -r requirements.txt
 
-WORKDIR /var/task
+COPY src/fptiler ./fptiler
 
-COPY package*.json ./
-RUN npm ci --omit=dev
-
-COPY --from=builder /var/task/dist/ ./
-
-ENV NODE_ENV=production
-
-CMD ["index.handler"]
+CMD ["fptiler.app.handler"]

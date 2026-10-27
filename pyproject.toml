@@ -1,0 +1,27 @@
+[project]
+name = "fp-tiler"
+version = "3.0.0"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.156.1",
+    "mangum>=0.22.0",
+    "rio-tiler>=9.4.12",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pillow>=13.0.0",
+    "pytest>=9.1.1",
+    "uvicorn>=0.54.0",
+]
+
+[tool.pytest.ini_options]
+filterwarnings = ["ignore::DeprecationWarning:mangum"]
+
+[tool.uv.build-backend]
+module-name = "fptiler"
