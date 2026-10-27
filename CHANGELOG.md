@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.0.1 - 2026-10-27
+
+* Bump fastapi and uv-build
+* Bump GH Actions dependencies
+
 ## v3.0.0 - 2026-10-27
 
 * Rewrite in Python using rio-tiler (the same engine used in TiTiler). GeoTIFFs
