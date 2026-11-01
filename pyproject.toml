@@ -16,7 +16,7 @@ build-backend = "uv_build"
 dev = [
     "httpx>=0.28.1",
     "pillow>=13.0.0",
-    "pytest>=9.1.1",
+    "pytest>=9.2.0",
     "uvicorn>=0.54.0",
 ]
 
