@@ -138,6 +138,11 @@ def tile(snapshot_id: str, z: str, x: str, filename: str):
 
     try:
         with Reader(geotiff_url(snapshot_id)) as src:
+            # Below minzoom the whole snapshot fits in about one tile; there's
+            # not much point in rasterizing tiles too far below this zooom
+            if z < src.minzoom - 1:
+                raise TileOutsideBounds(f'zoom {z} is below minzoom {src.minzoom}')
+
             img = src.tile(
                 x,
                 y,

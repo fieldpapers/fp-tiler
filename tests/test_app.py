@@ -106,6 +106,19 @@ def test_tile_outside_bounds(client):
     assert (px[..., 3] == 0).all()
 
 
+
+@legacy_format
+def test_zoomed_out_tiles(client):
+    # the test snapshot's minzoom is TILE.z
+    above = morecantile.Tile(x=TILE.x >> 1, y=TILE.y >> 1, z=TILE.z - 1)
+    px = get_tile(client, f'{above.y}@2x.png', above)
+    assert (px[..., 3] == 255).any()
+
+    # past the slack, tiles are blank even where the snapshot has data
+    below = morecantile.Tile(x=TILE.x >> 2, y=TILE.y >> 2, z=TILE.z - 2)
+    px = get_tile(client, f'{below.y}@2x.png', below)
+    assert (px[..., 3] == 0).all()
+
 @legacy_format
 @pytest.mark.parametrize(
     'path',
