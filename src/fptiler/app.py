@@ -33,7 +33,7 @@ warnings.filterwarnings('ignore', category=NoOverviewWarning)
 
 API_BASE_URL = os.environ.get('API_BASE_URL', 'https://fieldpapers.org')
 PUBLIC_URL = os.environ.get('PUBLIC_URL')
-TILE_SIZE = int(os.environ.get('TILE_SIZE', 512))
+TILE_SIZE = int(os.environ.get('TILE_SIZE', '512'))
 MAX_ZOOM = 24
 
 # Some clients request e.g. `123@2x@2x.png`, which is treated like `123@2x.png`.
