@@ -36,8 +36,14 @@ PUBLIC_URL = os.environ.get('PUBLIC_URL')
 TILE_SIZE = int(os.environ.get('TILE_SIZE', '512'))
 MAX_ZOOM = 24
 
+# Make sure integer tile coordinates are given in their canonical form (no
+# leading zeroes) so that each tile has one possible Cloudfront cache key.
+# Eight digits is enough for MAX_ZOOM = 24.
+COORD = r'0|[1-9]\d{0,7}'
+TILE_COORD = re.compile(COORD)
+
 # Some clients request e.g. `123@2x@2x.png`, which is treated like `123@2x.png`.
-TILE_FILENAME = re.compile(r'(\d+)((?:@2x)*)\.png')
+TILE_FILENAME = re.compile(rf'({COORD})((?:@2x)*)\.png')
 
 # Field Papers snapshot slugs
 SNAPSHOT_ID = re.compile(r'[a-z0-9]{8}')
@@ -117,13 +123,16 @@ def tilejson(snapshot_id: str, request: Request):
 
 
 @app.get('/snapshots/{snapshot_id}/{z}/{x}/{filename}')
-def tile(snapshot_id: str, z: int, x: int, filename: str):
+def tile(snapshot_id: str, z: str, x: str, filename: str):
     check_snapshot_id(snapshot_id)
+    
     m = TILE_FILENAME.fullmatch(filename)
-    if not m:
-        raise HTTPException(404, f'Invalid tile filename {filename}')
-    y = int(m[1])
+    if not (m and TILE_COORD.fullmatch(z) and TILE_COORD.fullmatch(x)):
+        raise HTTPException(404, f'Invalid tile {z}/{x}/{filename}')
+    
+    z, x, y = int(z), int(x), int(m[1])
     size = 512 if m[2] else 256
+    
     if not (0 <= z <= MAX_ZOOM and 0 <= x < 2**z and 0 <= y < 2**z):
         raise HTTPException(404, f'Invalid tile {z}/{x}/{y}')
 

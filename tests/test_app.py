@@ -107,7 +107,24 @@ def test_tile_outside_bounds(client):
 
 
 @legacy_format
-@pytest.mark.parametrize('path', ['16/0/99999999.png', '25/0/0.png', '16/0/0.jpg', '16/0/0@3x.png'])
+@pytest.mark.parametrize(
+    'path',
+    [
+        '16/0/99999999.png',
+        '25/0/0.png',
+        '16/0/0.jpg',
+        '16/0/0@3x.png',
+        # non-canonical forms of valid coordinates
+        f'016/{TILE.x}/{TILE.y}.png',
+        f'16/0{TILE.x}/{TILE.y}.png',
+        f'16/{TILE.x}/0{TILE.y}.png',
+        f'+16/{TILE.x}/{TILE.y}.png',
+        f'16/{TILE.x}/+{TILE.y}.png',
+        f'16/{TILE.x}/{TILE.y}.0.png',
+        '16/' + '1' * 5000 + '/0.png',
+        'abc/0/0.png',
+    ],
+)
 def test_invalid_tile(client, path):
     assert client.get(f'/snapshots/abcd1234/{path}').status_code == 404
 
