@@ -1,10 +1,12 @@
 import json
 import os
+import posixpath
 import re
 import time
 import warnings
 from functools import cache, lru_cache
 from urllib.error import HTTPError
+from urllib.parse import unquote, urlparse
 from urllib.request import urlopen
 
 import numpy as np
@@ -32,6 +34,7 @@ for key, value in {
 warnings.filterwarnings('ignore', category=NoOverviewWarning)
 
 API_BASE_URL = os.environ.get('API_BASE_URL', 'https://fieldpapers.org')
+S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', 'files.fieldpapers.org')
 PUBLIC_URL = os.environ.get('PUBLIC_URL')
 TILE_SIZE = int(os.environ.get('TILE_SIZE', '512'))
 MAX_ZOOM = 24
@@ -47,6 +50,9 @@ TILE_FILENAME = re.compile(rf'({COORD})((?:@2x)*)\.png')
 
 # Field Papers snapshot slugs
 SNAPSHOT_ID = re.compile(r'[a-z0-9]{8}')
+
+# S3 endpoints in fp-tasks' (path-style) GeoTIFF URLs
+S3_HOST = re.compile(r's3(\.[a-z0-9-]+)?\.amazonaws\.com')
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -80,7 +86,27 @@ def geotiff_url(snapshot_id: str) -> str:
 
     if not data.get('geotiff'):
         raise HTTPException(404, f'Snapshot {snapshot_id} has no GeoTIFF')
-    return data['geotiff']['url']
+
+    url = data['geotiff']['url']
+    check_geotiff_url(url)
+    return url
+
+
+def check_geotiff_url(url: str):
+    """
+    Raise ValueError unless url is in S3_BUCKET_NAME. GDAL can open local files
+    and many kinds of URLs, so this keeps a bad URL from the Field Papers API
+    from reading anything else.
+    """
+    uri = urlparse(url)
+    # resolve any ../ (including encoded ones) as an HTTP client would
+    path = posixpath.normpath(unquote(uri.path))
+    if not (
+        uri.scheme in ('http', 'https')
+        and S3_HOST.fullmatch(uri.hostname or '')
+        and path.startswith(f'/{S3_BUCKET_NAME}/')
+    ):
+        raise ValueError(f'GeoTIFF URL {url} is not in the {S3_BUCKET_NAME} bucket')
 
 
 def check_snapshot_id(snapshot_id: str):

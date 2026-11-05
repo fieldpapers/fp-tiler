@@ -24,6 +24,7 @@ Tiles outside a snapshot's bounds are returned as fully transparent PNGs. The Ti
 
 - `PUBLIC_URL` - URL that the service is publicly available at (used in TileJSON URLs); defaults to the request's origin
 - `API_BASE_URL` - Field Papers API URL (default: `https://fieldpapers.org`)
+- `S3_BUCKET_NAME` - S3 bucket that snapshot GeoTIFFs must be in (default: `files.fieldpapers.org`); fp-tiler refuses to open GeoTIFF URLs elsewhere
 - `TILE_SIZE` - tile resolution advertised in TileJSON, either `256` or `512` (default). Both sizes are always available.
 
 GDAL configuration options (e.g. `CPL_VSIL_CURL_CACHE_SIZE`) can also be set via the environment to override the defaults in `app.py`.

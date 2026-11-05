@@ -1,4 +1,5 @@
 import io
+import json
 
 import morecantile
 import numpy as np
@@ -160,3 +161,40 @@ def test_tilejson(client):
 def test_invalid_snapshot_id(monkeypatch, snapshot_id, path):
     monkeypatch.setattr(fp, 'geotiff_url', lambda _: pytest.fail('looked up an invalid snapshot ID'))
     assert TestClient(fp.app).get(f'/snapshots/{snapshot_id}/{path}').status_code == 404
+
+
+@pytest.mark.parametrize(
+    'url',
+    [
+        'https://s3.amazonaws.com/files.fieldpapers.org/snapshots/abcd1234/field-paper-abcd1234.tiff',
+        'http://s3.amazonaws.com/files.fieldpapers.org/snapshots/abcd1234/walking-paper-abcd1234.tif',
+        'https://s3.amazonaws.com/files.fieldpapers.org/snapshots%2Fabcd1234%2Ffield-paper-abcd1234.tiff',
+        'https://s3.us-west-2.amazonaws.com/files.fieldpapers.org/snapshots/abcd1234/x.tiff',
+    ],
+)
+def test_geotiff_url(monkeypatch, url):
+    monkeypatch.setattr(fp, 'urlopen', lambda *_, **__: io.BytesIO(json.dumps({'geotiff': {'url': url}}).encode()))
+    fp.geotiff_url.cache_clear()
+    assert fp.geotiff_url('abcd1234') == url
+
+
+@pytest.mark.parametrize(
+    'url',
+    [
+        '/etc/passwd',
+        'file:///etc/passwd',
+        '/vsicurl/https://example.com/x.tif',
+        'https://example.com/files.fieldpapers.org/x.tif',
+        'https://s3.amazonaws.com/other-bucket/x.tif',
+        'https://s3.amazonaws.com/files.fieldpapers.org.evil/x.tif',
+        'https://s3.amazonaws.com/files.fieldpapers.org/../other-bucket/x.tif',
+        'https://s3.amazonaws.com/files.fieldpapers.org/%2e%2e/other-bucket/x.tif',
+        'https://s3.amazonaws.com@example.com/files.fieldpapers.org/x.tif',
+        'ftp://s3.amazonaws.com/files.fieldpapers.org/x.tif',
+    ],
+)
+def test_geotiff_url_outside_bucket(monkeypatch, url):
+    monkeypatch.setattr(fp, 'urlopen', lambda *_, **__: io.BytesIO(json.dumps({'geotiff': {'url': url}}).encode()))
+    fp.geotiff_url.cache_clear()
+    with pytest.raises(ValueError):
+        fp.geotiff_url('abcd1234')
