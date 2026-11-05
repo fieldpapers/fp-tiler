@@ -61,7 +61,7 @@ def client(monkeypatch, tmp_path, request):
 
 
 def get_tile(client, filename, tile=TILE):
-    res = client.get(f'/snapshots/abc/{tile.z}/{tile.x}/{filename}')
+    res = client.get(f'/snapshots/abcd1234/{tile.z}/{tile.x}/{filename}')
     assert res.status_code == 200
     assert res.headers['content-type'] == 'image/png'
     assert res.headers['access-control-allow-origin'] == '*'
@@ -109,17 +109,24 @@ def test_tile_outside_bounds(client):
 @legacy_format
 @pytest.mark.parametrize('path', ['16/0/99999999.png', '25/0/0.png', '16/0/0.jpg', '16/0/0@3x.png'])
 def test_invalid_tile(client, path):
-    assert client.get(f'/snapshots/abc/{path}').status_code == 404
+    assert client.get(f'/snapshots/abcd1234/{path}').status_code == 404
 
 
 @legacy_format
 def test_tilejson(client):
-    res = client.get('/snapshots/abc/index.json')
+    res = client.get('/snapshots/abcd1234/index.json')
     assert res.headers['access-control-allow-origin'] == '*'
     tj = res.json()
     bounds = morecantile.tms.get('WebMercatorQuad').bounds(TILE)
 
-    assert tj['tiles'] == ['http://testserver/snapshots/abc/{z}/{x}/{y}@2x.png']
+    assert tj['tiles'] == ['http://testserver/snapshots/abcd1234/{z}/{x}/{y}@2x.png']
     assert tj['tileSize'] == 512
     assert tj['bounds'] == pytest.approx(list(bounds))
     assert tj['minzoom'] <= TILE.z <= tj['maxzoom']
+
+
+@pytest.mark.parametrize('snapshot_id', ['abc', 'abcd12345', 'ABCD1234', 'abcd-123'])
+@pytest.mark.parametrize('path', ['index.json', '16/0/0.png'])
+def test_invalid_snapshot_id(monkeypatch, snapshot_id, path):
+    monkeypatch.setattr(fp, 'geotiff_url', lambda _: pytest.fail('looked up an invalid snapshot ID'))
+    assert TestClient(fp.app).get(f'/snapshots/{snapshot_id}/{path}').status_code == 404

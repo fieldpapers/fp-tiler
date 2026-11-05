@@ -39,6 +39,9 @@ MAX_ZOOM = 24
 # Some clients request e.g. `123@2x@2x.png`, which is treated like `123@2x.png`.
 TILE_FILENAME = re.compile(r'(\d+)((?:@2x)*)\.png')
 
+# Field Papers snapshot slugs
+SNAPSHOT_ID = re.compile(r'[a-z0-9]{8}')
+
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 
@@ -74,6 +77,12 @@ def geotiff_url(snapshot_id: str) -> str:
     return data['geotiff']['url']
 
 
+def check_snapshot_id(snapshot_id: str):
+    """404 for IDs that can't be snapshots, without asking the Field Papers API."""
+    if not SNAPSHOT_ID.fullmatch(snapshot_id):
+        raise HTTPException(404, f'Snapshot {snapshot_id} not found')
+
+
 @cache
 def blank_tile(size: int) -> bytes:
     data = np.ma.masked_all((3, size, size), dtype='uint8')
@@ -87,6 +96,7 @@ def health():
 
 @app.get('/snapshots/{snapshot_id}/index.json')
 def tilejson(snapshot_id: str, request: Request):
+    check_snapshot_id(snapshot_id)
     with Reader(geotiff_url(snapshot_id)) as src:
         west, south, east, north = src.get_geographic_bounds(src.tms.rasterio_geographic_crs)
         minzoom, maxzoom = src.minzoom, src.maxzoom
@@ -108,6 +118,7 @@ def tilejson(snapshot_id: str, request: Request):
 
 @app.get('/snapshots/{snapshot_id}/{z}/{x}/{filename}')
 def tile(snapshot_id: str, z: int, x: int, filename: str):
+    check_snapshot_id(snapshot_id)
     m = TILE_FILENAME.fullmatch(filename)
     if not m:
         raise HTTPException(404, f'Invalid tile filename {filename}')
