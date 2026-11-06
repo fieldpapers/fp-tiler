@@ -1,6 +1,6 @@
 [project]
 name = "fp-tiler"
-version = "3.0.1"
+version = "3.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.162.0",

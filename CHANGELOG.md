@@ -1,5 +1,16 @@
 # Changelog
 
+## v3.1.0 - 2026-11-06
+
+* Construct S3 paths directly, instead of looking them up via the Field Papers
+  API (this is possible because the bucket has been reorganized so that snapshot
+  files live at consistent paths derived from their "slug" IDs).
+* Drop support for legacy GeoTIFFs (no overviews, NODATA 153 for transparency).
+  All existing snapshots have been transcoded into COGs with alpha masks.
+* Return 404 for snapshot IDs that don't match `[a-z0-9]{8}`, and for tile
+  coordinates with leading zeroes (so each tile has a single URL and cache key).
+* Return blank tiles at zooms more than one level below the snapshot's minzoom.
+
 ## v3.0.1 - 2026-10-27
 
 * Bump fastapi and uv-build
