@@ -1,18 +1,13 @@
-import json
 import os
-import posixpath
 import re
 import time
-import warnings
-from functools import cache, lru_cache
-from urllib.error import HTTPError
-from urllib.parse import unquote, urlparse
-from urllib.request import urlopen
+from functools import cache
 
 import numpy as np
 from fastapi import FastAPI, HTTPException, Request, Response
 from mangum import Mangum
-from rio_tiler.errors import NoOverviewWarning, TileOutsideBounds
+from rasterio.errors import RasterioIOError
+from rio_tiler.errors import TileOutsideBounds
 from rio_tiler.io import Reader
 from rio_tiler.models import ImageData
 
@@ -30,10 +25,6 @@ for key, value in {
 }.items():
     os.environ.setdefault(key, value)
 
-# Snapshots created before the switch to COGs have no overviews; that's expected.
-warnings.filterwarnings('ignore', category=NoOverviewWarning)
-
-API_BASE_URL = os.environ.get('API_BASE_URL', 'https://fieldpapers.org')
 S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', 'files.fieldpapers.org')
 PUBLIC_URL = os.environ.get('PUBLIC_URL')
 TILE_SIZE = int(os.environ.get('TILE_SIZE', '512'))
@@ -51,8 +42,8 @@ TILE_FILENAME = re.compile(rf'({COORD})((?:@2x)*)\.png')
 # Field Papers snapshot slugs
 SNAPSHOT_ID = re.compile(r'[a-z0-9]{8}')
 
-# S3 endpoints in fp-tasks' (path-style) GeoTIFF URLs
-S3_HOST = re.compile(r's3(\.[a-z0-9-]+)?\.amazonaws\.com')
+# S3 responds 403 rather than 404 to anonymous requests for missing objects
+MISSING = re.compile(r'HTTP response code: 40[34]\b')
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -73,46 +64,21 @@ async def allow_cors(request: Request, call_next):
     return response
 
 
-@lru_cache(maxsize=1024)
 def geotiff_url(snapshot_id: str) -> str:
-    """Look up the URL of a snapshot's GeoTIFF via the Field Papers API."""
-    try:
-        with urlopen(f'{API_BASE_URL}/snapshots/{snapshot_id}.json', timeout=10) as res:
-            data = json.load(res)
-    except HTTPError as e:
-        if e.code == 404:
-            raise HTTPException(404, f'Snapshot {snapshot_id} not found')
-        raise
-
-    if not data.get('geotiff'):
-        raise HTTPException(404, f'Snapshot {snapshot_id} has no GeoTIFF')
-
-    url = data['geotiff']['url']
-    check_geotiff_url(url)
-    return url
+    """URL of a snapshot's GeoTIFF (a COG), which fp-tasks writes to a fixed key."""
+    return f'https://s3.amazonaws.com/{S3_BUCKET_NAME}/snapshots/{snapshot_id}/field-paper-{snapshot_id}.tiff'
 
 
-def check_geotiff_url(url: str):
-    """
-    Raise ValueError unless url is in S3_BUCKET_NAME. GDAL can open local files
-    and many kinds of URLs, so this keeps a bad URL from the Field Papers API
-    from reading anything else.
-    """
-    uri = urlparse(url)
-    # resolve any ../ (including encoded ones) as an HTTP client would
-    path = posixpath.normpath(unquote(uri.path))
-    if not (
-        uri.scheme in ('http', 'https')
-        and S3_HOST.fullmatch(uri.hostname or '')
-        and path.startswith(f'/{S3_BUCKET_NAME}/')
-    ):
-        raise ValueError(f'GeoTIFF URL {url} is not in the {S3_BUCKET_NAME} bucket')
-
-
-def check_snapshot_id(snapshot_id: str):
-    """404 for IDs that can't be snapshots, without asking the Field Papers API."""
+def open_snapshot(snapshot_id: str) -> Reader:
+    """Open a snapshot's GeoTIFF, raising a 404 if there isn't one."""
     if not SNAPSHOT_ID.fullmatch(snapshot_id):
         raise HTTPException(404, f'Snapshot {snapshot_id} not found')
+    try:
+        return Reader(geotiff_url(snapshot_id))
+    except RasterioIOError as e:
+        if MISSING.search(str(e)):
+            raise HTTPException(404, f'Snapshot {snapshot_id} not found') from None
+        raise
 
 
 @cache
@@ -128,8 +94,7 @@ def health():
 
 @app.get('/snapshots/{snapshot_id}/index.json')
 def tilejson(snapshot_id: str, request: Request):
-    check_snapshot_id(snapshot_id)
-    with Reader(geotiff_url(snapshot_id)) as src:
+    with open_snapshot(snapshot_id) as src:
         west, south, east, north = src.get_geographic_bounds(src.tms.rasterio_geographic_crs)
         minzoom, maxzoom = src.minzoom, src.maxzoom
 
@@ -150,12 +115,10 @@ def tilejson(snapshot_id: str, request: Request):
 
 @app.get('/snapshots/{snapshot_id}/{z}/{x}/{filename}')
 def tile(snapshot_id: str, z: str, x: str, filename: str):
-    check_snapshot_id(snapshot_id)
-    
     m = TILE_FILENAME.fullmatch(filename)
     if not (m and TILE_COORD.fullmatch(z) and TILE_COORD.fullmatch(x)):
         raise HTTPException(404, f'Invalid tile {z}/{x}/{filename}')
-    
+
     z, x, y = int(z), int(x), int(m[1])
     size = 512 if m[2] else 256
     
@@ -163,7 +126,7 @@ def tile(snapshot_id: str, z: str, x: str, filename: str):
         raise HTTPException(404, f'Invalid tile {z}/{x}/{y}')
 
     try:
-        with Reader(geotiff_url(snapshot_id)) as src:
+        with open_snapshot(snapshot_id) as src:
             # Below minzoom the whole snapshot fits in about one tile; there's
             # not much point in rasterizing tiles too far below this zooom
             if z < src.minzoom - 1:
@@ -177,10 +140,6 @@ def tile(snapshot_id: str, z: str, x: str, filename: str):
                 indexes=(1, 2, 3),
                 resampling_method='bilinear',
                 reproject_method='bilinear',
-                # Legacy snapshots use rgb(153, 153, 153) as NODATA; this option
-                # tells GDAL not to interpret each band's nodata value separately,
-                # which would cause e.g. rgb(153, 154, 155) to be interpreted wrong
-                vrt_options={'UNIFIED_SRC_NODATA': 'YES'},
             )
         png = img.render(img_format='PNG')
     except TileOutsideBounds:

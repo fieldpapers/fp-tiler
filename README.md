@@ -4,12 +4,7 @@ Tile server for [Field Papers](https://fieldpapers.org). It serves Z/X/Y PNG til
 
 ## Overview
 
-Snapshots are stored as GeoTIFFs in S3. fp-tiler looks up a snapshot's GeoTIFF URL via the Field Papers API, then renders tiles on the fly using [rio-tiler](https://github.com/cogeotiff/rio-tiler). GeoTIFFs are read with HTTP range requests, so only the parts needed for a tile are fetched. It runs as an AWS Lambda function, in the same region as the S3 bucket, behind CloudFront.
-
-Two flavors of GeoTIFF are supported:
-
-- **Cloud Optimized GeoTIFFs** with overviews and an alpha band or internal mask for transparency. This is the preferred format, since low-zoom tiles can be rendered from overviews.
-- **Legacy tiled GeoTIFFs** without overviews, using a nodata value of 153 in every band. A pixel is treated as transparent only if all of its bands are 153. These work, but low-zoom tiles are slower because the full-resolution image must be read.
+Snapshots are stored in S3 as Cloud Optimized GeoTIFFs (COGs) with overviews and an internal mask for transparency. fp-tasks writes each snapshot's COG to `snapshots/{id}/field-paper-{id}.tiff`, so fp-tiler reads it from there directly and renders tiles on the fly using [rio-tiler](https://github.com/cogeotiff/rio-tiler). COGs are read with HTTP range requests, so only the parts needed for a tile are fetched, and low-zoom tiles are rendered from overviews. It runs as an AWS Lambda function, in the same region as the S3 bucket, behind CloudFront.
 
 ## Endpoints
 
@@ -18,13 +13,12 @@ Two flavors of GeoTIFF are supported:
 - `/snapshots/{id}/{z}/{x}/{y}.png` - 256x256 tiles
 - `/snapshots/{id}/{z}/{x}/{y}@2x.png` - 512x512 tiles
 
-Tiles outside a snapshot's bounds are returned as fully transparent PNGs. The TileJSON zoom range is derived from the snapshot's native resolution, but tiles can be requested at any zoom from 0 to 24.
+Tiles outside a snapshot's bounds are returned as fully transparent PNGs. Snapshots without a GeoTIFF in S3 return 404. The TileJSON zoom range is derived from the snapshot's native resolution, but tiles can be requested at any zoom from 0 to 24.
 
 ## Environment Variables
 
 - `PUBLIC_URL` - URL that the service is publicly available at (used in TileJSON URLs); defaults to the request's origin
-- `API_BASE_URL` - Field Papers API URL (default: `https://fieldpapers.org`)
-- `S3_BUCKET_NAME` - S3 bucket that snapshot GeoTIFFs must be in (default: `files.fieldpapers.org`); fp-tiler refuses to open GeoTIFF URLs elsewhere
+- `S3_BUCKET_NAME` - S3 bucket that snapshot GeoTIFFs are read from (default: `files.fieldpapers.org`)
 - `TILE_SIZE` - tile resolution advertised in TileJSON, either `256` or `512` (default). Both sizes are always available.
 
 GDAL configuration options (e.g. `CPL_VSIL_CURL_CACHE_SIZE`) can also be set via the environment to override the defaults in `app.py`.

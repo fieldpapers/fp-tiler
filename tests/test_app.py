@@ -1,5 +1,4 @@
 import io
-import json
 
 import morecantile
 import numpy as np
@@ -7,6 +6,7 @@ import pytest
 import rasterio
 from fastapi.testclient import TestClient
 from PIL import Image
+from rasterio.errors import RasterioIOError
 from rasterio.shutil import copy as rio_copy
 from rasterio.transform import from_bounds
 
@@ -16,14 +16,11 @@ TILE = morecantile.Tile(x=10498, y=22872, z=16)
 SIZE = 512
 
 
-def write_snapshot(path, compress=None):
+def write_snapshot(path, compress):
     """
-    Write a 3857 GeoTIFF covering exactly TILE at SIZE px. The left half is
-    nodata, the right half is valid with a column of pixels whose green band
-    happens to equal 153.
-
-    With no compression, this is the legacy format (nodata=153, no overviews).
-    Otherwise it's a COG with an alpha band (or mask, for JPEG).
+    Write a 3857 COG covering exactly TILE at SIZE px, with an alpha band (or
+    mask, for JPEG). The left half is transparent, the right half is opaque with
+    a column of pixels whose green band is 153.
     """
     rgb = np.full((3, SIZE, SIZE), 153, dtype='uint8')
     rgb[:, :, SIZE // 2 :] = [[[200]], [[100]], [[50]]]
@@ -40,11 +37,6 @@ def write_snapshot(path, compress=None):
         'tiled': True,
         'compress': 'deflate',
     }
-
-    if compress is None:
-        with rasterio.open(path, 'w', count=3, nodata=153, **profile) as ds:
-            ds.write(rgb)
-        return path
 
     alpha = np.where((rgb == 153).all(axis=0), 0, 255).astype('uint8')
     tmp = path.with_suffix('.rgba.tif')
@@ -69,8 +61,8 @@ def get_tile(client, filename, tile=TILE):
     return np.asarray(Image.open(io.BytesIO(res.content)).convert('RGBA')).astype(int)
 
 
-all_formats = pytest.mark.parametrize('client', [None, 'JPEG', 'WEBP'], indirect=True)
-legacy_format = pytest.mark.parametrize('client', [None], indirect=True)
+all_formats = pytest.mark.parametrize('client', ['JPEG', 'WEBP', 'DEFLATE'], indirect=True)
+jpeg_format = pytest.mark.parametrize('client', ['JPEG'], indirect=True)
 
 
 @all_formats
@@ -87,20 +79,14 @@ def test_tile(client):
     assert np.abs(px[256, -5, :3] - [200, 153, 50]).max() <= 5
 
 
-@legacy_format
-def test_band_equal_to_nodata_is_not_masked(client):
-    px = get_tile(client, f'{TILE.y}@2x.png')
-    assert (px[:, -10:] == [200, 153, 50, 255]).all()
-
-
-@legacy_format
+@jpeg_format
 @pytest.mark.parametrize('filename,size', [('{y}.png', 256), ('{y}@2x.png', 512), ('{y}@2x@2x.png', 512)])
 def test_tile_sizes(client, filename, size):
     px = get_tile(client, filename.format(y=TILE.y))
     assert px.shape == (size, size, 4)
 
 
-@legacy_format
+@jpeg_format
 def test_tile_outside_bounds(client):
     px = get_tile(client, '0@2x.png', morecantile.Tile(x=0, y=0, z=16))
     assert px.shape == (512, 512, 4)
@@ -108,7 +94,7 @@ def test_tile_outside_bounds(client):
 
 
 
-@legacy_format
+@jpeg_format
 def test_zoomed_out_tiles(client):
     # the test snapshot's minzoom is TILE.z
     above = morecantile.Tile(x=TILE.x >> 1, y=TILE.y >> 1, z=TILE.z - 1)
@@ -120,7 +106,7 @@ def test_zoomed_out_tiles(client):
     px = get_tile(client, f'{below.y}@2x.png', below)
     assert (px[..., 3] == 0).all()
 
-@legacy_format
+@jpeg_format
 @pytest.mark.parametrize(
     'path',
     [
@@ -143,7 +129,7 @@ def test_invalid_tile(client, path):
     assert client.get(f'/snapshots/abcd1234/{path}').status_code == 404
 
 
-@legacy_format
+@jpeg_format
 def test_tilejson(client):
     res = client.get('/snapshots/abcd1234/index.json')
     assert res.headers['access-control-allow-origin'] == '*'
@@ -163,38 +149,25 @@ def test_invalid_snapshot_id(monkeypatch, snapshot_id, path):
     assert TestClient(fp.app).get(f'/snapshots/{snapshot_id}/{path}').status_code == 404
 
 
-@pytest.mark.parametrize(
-    'url',
-    [
-        'https://s3.amazonaws.com/files.fieldpapers.org/snapshots/abcd1234/field-paper-abcd1234.tiff',
-        'http://s3.amazonaws.com/files.fieldpapers.org/snapshots/abcd1234/walking-paper-abcd1234.tif',
-        'https://s3.amazonaws.com/files.fieldpapers.org/snapshots%2Fabcd1234%2Ffield-paper-abcd1234.tiff',
-        'https://s3.us-west-2.amazonaws.com/files.fieldpapers.org/snapshots/abcd1234/x.tiff',
-    ],
-)
-def test_geotiff_url(monkeypatch, url):
-    monkeypatch.setattr(fp, 'urlopen', lambda *_, **__: io.BytesIO(json.dumps({'geotiff': {'url': url}}).encode()))
-    fp.geotiff_url.cache_clear()
-    assert fp.geotiff_url('abcd1234') == url
+def test_geotiff_url():
+    assert fp.geotiff_url('abcd1234') == (
+        'https://s3.amazonaws.com/files.fieldpapers.org/snapshots/abcd1234/field-paper-abcd1234.tiff'
+    )
 
 
-@pytest.mark.parametrize(
-    'url',
-    [
-        '/etc/passwd',
-        'file:///etc/passwd',
-        '/vsicurl/https://example.com/x.tif',
-        'https://example.com/files.fieldpapers.org/x.tif',
-        'https://s3.amazonaws.com/other-bucket/x.tif',
-        'https://s3.amazonaws.com/files.fieldpapers.org.evil/x.tif',
-        'https://s3.amazonaws.com/files.fieldpapers.org/../other-bucket/x.tif',
-        'https://s3.amazonaws.com/files.fieldpapers.org/%2e%2e/other-bucket/x.tif',
-        'https://s3.amazonaws.com@example.com/files.fieldpapers.org/x.tif',
-        'ftp://s3.amazonaws.com/files.fieldpapers.org/x.tif',
-    ],
-)
-def test_geotiff_url_outside_bucket(monkeypatch, url):
-    monkeypatch.setattr(fp, 'urlopen', lambda *_, **__: io.BytesIO(json.dumps({'geotiff': {'url': url}}).encode()))
-    fp.geotiff_url.cache_clear()
-    with pytest.raises(ValueError):
-        fp.geotiff_url('abcd1234')
+@pytest.mark.parametrize('path', ['index.json', '16/0/0.png'])
+def test_missing_snapshot(monkeypatch, path):
+    def reader(_):
+        raise RasterioIOError('HTTP response code: 403')
+
+    monkeypatch.setattr(fp, 'Reader', reader)
+    assert TestClient(fp.app).get(f'/snapshots/abcd1234/{path}').status_code == 404
+
+
+def test_unreadable_snapshot(monkeypatch):
+    def reader(_):
+        raise RasterioIOError('not recognized as being in a supported file format')
+
+    monkeypatch.setattr(fp, 'Reader', reader)
+    with pytest.raises(RasterioIOError):
+        TestClient(fp.app).get('/snapshots/abcd1234/index.json')
